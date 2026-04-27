@@ -17,9 +17,6 @@
 
 This repository contains the official implementation of the paper "X-AVDT: Audio-Visual Cross-Attention for Robust Deepfake Detection".
 
-[![X-AVDT video](https://img.youtube.com/vi/ctbPMKSGmGM/maxresdefault.jpg)](https://www.youtube.com/watch?v=ctbPMKSGmGM)
-
-
 ![](docs/static/images/fig3_overview.png)
 
 TL;DR : audio-visual cross-attention with diffusion inversion features, a more robust detector against unseen deepfake generators.
