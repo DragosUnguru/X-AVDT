@@ -31,7 +31,7 @@ pip install -r requirements.txt
 
 `ffmpeg` is required for video preprocessing.
 
-## Pretrained Models
+## Download Pretrained Models
 
 The Hallo feature extraction uses the original [Hallo](https://github.com/fudan-generative-vision/hallo#%EF%B8%8F%EF%B8%8F-usage) repository. Pretrained weights are placed under `hallo/pretrained_models`. 
 ```text
@@ -102,7 +102,7 @@ After feature extraction, training expects this layout for both real and fake ro
   attn_feat/*.pt
 ```
 
-## Feature Extraction Pipeline
+## Feature Extraction
 
 If your inputs are raw videos, first convert them into frame folders and wav files:
 
@@ -129,7 +129,6 @@ Finally, pack the whole-clip feature outputs into the training layout. This step
 python hallo/preprocess_videos.py pack-features \
   --feature_dir /path/to/hallo_features \
   --output_dir /path/to/features \
-  --clip_len 16
 ```
 
 ## Training
