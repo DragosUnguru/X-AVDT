@@ -137,7 +137,6 @@ python hallo/preprocess_videos.py pack-features \
 python train/train.py \
   --real_dir /path/to/train/real \
   --fake_dir /path/to/train/fake \
-  --save_dir x_avdt
 ```
 
 ## Evaluation
