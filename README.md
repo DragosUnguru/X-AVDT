@@ -30,7 +30,6 @@ pip install -r requirements.txt
 ```
 
 `ffmpeg` is required for video preprocessing.
-
 ## Download Pretrained Models
 
 The Hallo feature extraction uses the original [Hallo](https://github.com/fudan-generative-vision/hallo#%EF%B8%8F%EF%B8%8F-usage) repository. Pretrained weights are placed under `hallo/pretrained_models`. 
@@ -94,7 +93,7 @@ The MMDF can be downloaded from [Hugging Face](https://huggingface.co/datasets/z
 After feature extraction, training expects this layout for both real and fake roots:
 
 ```text
-<root>/<model_id>/<clip_id>/
+<root>/<split>/<label>/<model_id>/<clip_id>/
   original/*.pt
   inverted/*.pt
   reconstructed/*.pt
@@ -115,7 +114,7 @@ python hallo/preprocess_videos.py extract-frames \
   --size 512 512
 ```
 
-Then run Hallo feature extraction. This produces whole-clip outputs such as `original`, `inverted`, `reconstructed`, `residual`, and `attn_feat` for each clip:
+Then run Hallo feature extraction. This produces whole-clip outputs such as `original.mp4`, `inverted.mp4`, `reconstructed.mp4`, `residual.mp4`, `attn_map.mp4`, and `attn_feat.pt` for each clip:
 
 ```bash
 python hallo/extract_features.py \
@@ -128,25 +127,19 @@ Finally, pack the whole-clip feature outputs into the training layout. This step
 ```bash
 python hallo/preprocess_videos.py pack-features \
   --feature_dir /path/to/hallo_features \
-  --output_dir /path/to/features \
+  --output_dir /path/to/pt \
 ```
 
 ## Training
 
 ```bash
-python train/train.py \
-  --real_dir /path/to/train/real \
-  --fake_dir /path/to/train/fake \
+python train/train.py --data_dir /path/to/pt/ 
 ```
 
 ## Evaluation
 
 ```bash
-python train/evaluate.py \
-  --real_dir /path/to/test/real \
-  --fake_dir /path/to/test/fake \
-  --ckpt results/x_avdt/model_best.pt \
-  --per_model_id
+python train/evaluate.py --data_dir /path/to/pt/ --ckpt results/x_avdt/model_best.pt 
 ```
 
 

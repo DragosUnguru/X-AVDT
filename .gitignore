@@ -1,0 +1,59 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+*.swp
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Environments
+.env
+.venv/
+venv/
+env/
+conda/
+
+# Logs and experiment trackers
+*.log
+wandb/
+mlruns/
+runs/
+results/
+outputs/
+
+# Data, generated media, and checkpoints
+/data/
+/datasets/
+pretrained_models/
+hallo/pretrained_models
+hallo/pretrained_models/
+hallo/.cache/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.npy
+*.npz
+*.mkv
+*.mp4
+*.avi
+*.mov
+*.webm
+*.wav
+*.jpg
+*.jpeg
+*.png
+
+# Keep project-page assets tracked under docs.
+!docs/static/images/*.png
+!docs/static/images/*.jpg
+!docs/static/images/*.jpeg
