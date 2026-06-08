@@ -146,10 +146,12 @@ python train/evaluate.py --data_dir /path/to/pt/ --ckpt results/x_avdt/model_bes
 ## Citation
 
 ```bibtex
-@article{kim2026x,
-  title={X-AVDT: Audio-Visual Cross-Attention for Robust Deepfake Detection},
-  author={Kim, Youngseo and Yun, Kwan and Hong, Seokhyeon and Cha, Sihun and Koo, Colette Suhjung and Noh, Junyong},
-  journal={arXiv preprint arXiv:2603.08483},
-  year={2026}
+@InProceedings{Kim_2026_CVPR,
+    author    = {Kim, Youngseo and Yun, Kwan and Hong, Seokhyeon and Cha, Sihun and Koo, Colette Suhjung and Noh, Junyong},
+    title     = {X-AVDT: Audio-Visual Cross-Attention for Robust Deepfake Detection},
+    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+    month     = {June},
+    year      = {2026},
+    pages     = {4403-4414}
 }
 ```
