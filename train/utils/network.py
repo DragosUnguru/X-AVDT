@@ -261,6 +261,27 @@ def get_feat_decoder(is_fuse=True, is_self_attn=True):
     else:
         return Fuse_Decoder(ResNeXtBottleneck3D, [3, 2, 2], cardinality=32, base_width=4)
 
+class MLP(nn.Module):
+    def __init__(self, input_size, hidden_size, num_classes, drop_rate=[0.5, 0.5]):
+        super(MLP, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.drop1 = nn.Dropout(p=drop_rate[0])
+        self.act1 = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_size, hidden_size)
+        self.drop2 = nn.Dropout(p=drop_rate[1])
+        self.act2 = nn.ReLU()
+        self.fc3 = nn.Linear(hidden_size, num_classes)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.drop1(x)
+        x = self.act1(x)
+        x = self.fc2(x)
+        x = self.drop2(x)
+        x = self.act2(x)
+        x = self.fc3(x)
+        
+        return x
 
 class Classifier(nn.Module):
     def __init__(
@@ -269,6 +290,7 @@ class Classifier(nn.Module):
         norm_layer="batch",
         attn_in_channels=320,
         proj_dim=512,
+        generative_method_classes=[],
     ):
         super().__init__()
 
@@ -284,6 +306,15 @@ class Classifier(nn.Module):
         self.img_proj = ProjectionHead(in_dim=1024, proj_dim=proj_dim)
         self.attn_proj = ProjectionHead(in_dim=1024, proj_dim=proj_dim)
 
+        if len(generative_method_classes) > 0:
+            self.video_gen_classes_count = len(generative_method_classes)
+            self.video_gen_method_to_idx = {class_name: idx for idx, class_name in generative_method_classes}
+            self.video_gen_head = MLP(input_size=proj_dim * 2, hidden_size=proj_dim, num_classes=self.video_gen_classes_count)
+        else:
+            self.video_gen_classes_count = 0
+            self.video_gen_method_to_idx = {}
+            self.video_gen_head = None
+
     def forward(self, x, attn_feat):
         img_feat = self.img_encoder(x)
         attn_feat_encoded = self.attn_encoder(attn_feat)
@@ -294,5 +325,6 @@ class Classifier(nn.Module):
         ei = self.img_proj(vi)                         # (B, proj_dim)
         ea = self.attn_proj(va)                        # (B, proj_dim)
         embed = torch.cat([ei, ea], dim=1)             # (B, 2*proj_dim)
+        video_gen_head_logits = self.video_gen_head(embed) if self.video_gen_head else None # (B, video_gen_classes_count)
 
-        return out, embed
+        return out, embed, video_gen_head_logits

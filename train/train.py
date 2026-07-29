@@ -6,6 +6,7 @@ import re
 
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -36,7 +37,7 @@ def set_seed(seed):
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train the X-AVDT deepfake detector.")
-    parser.add_argument("--data_dir", type=str, required=True, help="Feature data root directory. ex) ./MMDF_pt")
+    parser.add_argument("--data_dir", type=str, default="/home/elrond/.cache/huggingface/hub/datasets--zaqxsw0526--MMDF/snapshots/c3295ff47378b068d555889231eef2fc34a30240", help="Feature data root directory. ex) ./MMDF_pt")
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--total_epochs", type=int, default=10)  # Paper setting: 2 epochs
     parser.add_argument("--seed", type=int, default=42)
@@ -57,6 +58,7 @@ def parse_args():
     parser.add_argument("--resume", type=str, default=None)
 
     parser.add_argument("--alpha", default=0.3, type=float)
+    parser.add_argument("--lambda1", default=1.0, type=float)
     parser.add_argument("--loss_name", default="TripletMarginLoss", type=str)
     parser.add_argument("--embedding_size", default=1024, type=int)
     parser.add_argument("--pos_margin", default=0.3, type=float)
@@ -67,6 +69,24 @@ def parse_args():
     parser.add_argument("--memory_size", default=1024, type=int)
 
     return parser.parse_args()
+
+def _extract_video_gen_label(gen_labels):
+    """
+    Args:
+        gen_labels: (B, 10) one-hot or soft labels
+
+    Returns:
+        video_class_idx: (B,) LongTensor
+        video_label_onehot: (B, 10) FloatTensor
+    """
+    video_class_idx = gen_labels.argmax(dim=1)
+
+    video_label_onehot = torch.nn.functional.one_hot(
+        video_class_idx,
+        num_classes=gen_labels.shape[1]
+    ).float()
+
+    return video_class_idx, video_label_onehot
 
 
 def train(args):
@@ -110,6 +130,7 @@ def train(args):
 
     contrastive_criterion = CombinedLoss(loss_name=args.loss_name, embedding_size=args.embedding_size, pos_margin=args.pos_margin, neg_margin=args.neg_margin,
                             tau=args.tau, memory_size=args.memory_size, use_miner=args.use_miner, num_classes=args.num_classes)
+    ce_loss = nn.CrossEntropyLoss()
 
     best_val_acc = -float("inf")
     step = 0
@@ -126,7 +147,15 @@ def train(args):
             attn = attn.to(device, dtype=torch.float)
             y = torch.as_tensor(y, device=device)
 
-            out, embed = model(x, attn)
+            out, embed, video_gen_logits = model(x, attn)
+
+            # n-class (video generative method) softmax head
+            video_gen_loss = torch.zeros((), device=device)
+            if video_gen_logits is not None:
+                gen_labels = gen_labels.to(device)
+                video_class_idx, _ = _extract_video_gen_label(gen_labels)
+
+                video_gen_loss = ce_loss(video_gen_logits, video_class_idx)
 
             # 2-class softmax head (matches the released checkpoint's fc=(2,1024)).
             ce = F.cross_entropy(out, y.long())
@@ -134,7 +163,7 @@ def train(args):
             embed = F.normalize(embed, dim=1)
             contrastive = contrastive_criterion(embed, y.long())
 
-            loss = (1 - args.alpha) * ce + args.alpha * contrastive
+            loss = (1 - args.alpha) * ce + args.alpha * contrastive + args.lambda1 * video_gen_loss
 
             optimizer.zero_grad()
             loss.backward()

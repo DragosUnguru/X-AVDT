@@ -171,3 +171,10 @@ class InversionDataset(Dataset):
         attn = attn.float()
 
         return composite, attn, int(it["label"]), it["model_id"]
+
+
+if __name__ == "__main__":
+    from datasets import load_dataset
+
+    ds = load_dataset("zaqxsw0526/MMDF")
+    print(ds["test"][0])
